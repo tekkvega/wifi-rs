@@ -51,9 +51,13 @@ pub fn wifi(
     };
 
     let mut ssid_heapless = heapless::String::<32>::new();
-    ssid_heapless.push_str(ssid).expect("SSID exceeds heapless String capacity");
+    ssid_heapless
+        .push_str(ssid)
+        .expect("SSID exceeds heapless String capacity");
     let mut pass_heapless = heapless::String::<64>::new();
-    pass_heapless.push_str(pass).expect("PaSS exceeds heapless String capacity");
+    pass_heapless
+        .push_str(pass)
+        .expect("PaSS exceeds heapless String capacity");
     wifi.set_configuration(&Configuration::Client(ClientConfiguration {
         ssid: ssid_heapless,
         password: pass_heapless,
@@ -63,9 +67,12 @@ pub fn wifi(
     }))?;
 
     info!("Connecting wifi...");
-
-    wifi.connect()?;
-
+    let mut retries = 0;
+    while !wifi.is_connected()? && retries < 5 {
+        wifi.connect()?;
+        retries += 1;
+        std::thread::sleep(std::time::Duration::from_secs(5));
+    }
     info!("Waiting for DHCP lease...");
 
     wifi.wait_netif_up()?;
