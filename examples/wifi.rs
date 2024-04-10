@@ -1,5 +1,5 @@
 use anyhow::{bail, Result};
-use esp_idf_svc::{eventloop::EspSystemEventLoop, hal::prelude::Peripherals};
+use esp_idf_svc::{eventloop::EspSystemEventLoop, hal::prelude::Peripherals, nvs::EspDefaultNvsPartition};
 use wifi::wifi;
 
 /// This configuration is picked up at compile time by `build.rs` from the
@@ -18,7 +18,7 @@ fn main() -> Result<()> {
 
     let peripherals = Peripherals::take().unwrap();
     let sysloop = EspSystemEventLoop::take()?;
-
+    let nvs = EspDefaultNvsPartition::take()?;
     let app_config = CONFIG;
     // Connect to the Wi-Fi network
     let _wifi = match wifi(
@@ -26,6 +26,7 @@ fn main() -> Result<()> {
         app_config.wifi_psk,
         peripherals.modem,
         sysloop,
+        nvs,
     ) {
         Ok(inner) => {
             println!("Connected to Wi-Fi network!");
